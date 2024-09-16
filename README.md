@@ -3,7 +3,7 @@
 `gradebook-bot` is a Discord bot that fetches and displays your current grades and assignment statuses from studentvue grade portal. It utilizes web scraping to gather the necessary data and sends it to a designated Discord channel.
 
 ## Features
-- Fetches grades and assignment statuses from the student portal.
+- Fetches grades and assignment statuses from the studentvue portal.
 - Displays scores, missing assignments, and the last update date.
 - Sends formatted grade information to a Discord channel.
 
