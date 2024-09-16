@@ -18,6 +18,7 @@
 1. Clone the repository: `git clone https://github.com/squashyweeb/gradebook-bot.git && cd gradebook-bot`
 2. Install the required libraries: `pip install requests beautifulsoup4 discord.py python-dotenv`
 3. Create a `.env` file in the root directory of the project with the following content: `DISCORD_TOKEN=your_discord_bot_token`
+4. Get your data from `PXP2_Gradebook`.
 
 ## Usage
 1. Run the bot: `python gradebook_bot.py`
