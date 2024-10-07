@@ -60,7 +60,7 @@ class StudentVueSession:
         self.previous_grades = {}  # Initialize previous grades
 
     def login(self):
-        login_url = "https://studentvue.phoenixunion.org/PXP2_Login_Student.aspx?regenerateSessionId=true"
+        login_url = "https://your school link/PXP2_Login_Student.aspx?regenerateSessionId=true"
         logger.info("Attempting to log in to StudentVue.")
 
         try:
@@ -99,8 +99,8 @@ class StudentVueSession:
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "Content-Type": "application/x-www-form-urlencoded",
-            "Host": "studentvue.phoenixunion.org",
-            "Origin": "https://studentvue.phoenixunion.org",
+            "Host": "your school link",
+            "Origin": "https://your school link",
             "Referer": login_url,
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
             "Upgrade-Insecure-Requests": "1",
@@ -149,7 +149,7 @@ class StudentVueSession:
                 logger.error("Login failed. Cannot fetch grades.")
                 return None
 
-        url = 'https://studentvue.phoenixunion.org/PXP2_Gradebook.aspx?AGU=0&studentGU=50A22448-6B17-437F-AE42-662260A94136'
+        url = 'https://your school link/PXP2_Gradebook.aspx?AGU=0&studentGU=50A22448-6B17-437F-AE42-662260A94136'
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -158,8 +158,8 @@ class StudentVueSession:
             'Cache-Control': 'no-cache',
             'Connection': 'keep-alive',
             'Cookie': self.global_cookies,
-            'Host': 'studentvue.phoenixunion.org',
-            'Referer': 'https://studentvue.phoenixunion.org/PXP2_Assessment.aspx?AGU=0&StudentAssessment=1',
+            'Host': 'your school link',
+            'Referer': 'https://your school link/PXP2_Assessment.aspx?AGU=0&StudentAssessment=1',
             'Sec-Fetch-Dest': 'document',
             'Sec-Fetch-Mode': 'navigate',
             'Sec-Fetch-Site': 'same-origin',
