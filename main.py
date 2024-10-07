@@ -10,7 +10,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('GradeBot')
+logger = logging.getLogger('YOUR BOT NAME')
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
