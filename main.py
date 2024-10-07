@@ -18,8 +18,8 @@ USERNAME = os.getenv('STUDENT_USERNAME')
 PASSWORD = os.getenv('STUDENT_PASSWORD')
 
 # Replace with your actual Discord channel IDs
-GRADES_CHANNEL_ID = CHANNEL_ID( put yours)  # Channel for regular 12-hour updates
-CHANGE_CHANNEL_ID = CHANNEL_ID( put yours)    # Channel for hourly change updates
+GRADES_CHANNEL_ID = ( put yours)  # Channel for regular 12-hour updates
+CHANGE_CHANNEL_ID = ( put yours)    # Channel for hourly change updates
 
 if not all([TOKEN, USERNAME, PASSWORD]):
     logger.error("Missing environment variables. Please check your .env file.")
