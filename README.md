@@ -22,7 +22,8 @@
 
 ## Usage
 1. Run the bot: `python gradebook_bot.py`
-2. In your Discord server, use the `/grades` command to fetch and display your grades.
+2. In your Discord server, use the `/check`  command to fetch your new cookie incase of failure.
+3. In your Discord server, use the `/grades` command to fetch and display your grades.
 
 ## Code Explanation
 - **`requests`**: Used to send HTTP requests to the grade portal.
