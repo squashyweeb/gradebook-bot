@@ -8,9 +8,9 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import logging
 
-# Configure logging
+# logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('YOUR BOT NAME')
+logger = logging.getLogger('GradeBot')
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -18,8 +18,8 @@ USERNAME = os.getenv('STUDENT_USERNAME')
 PASSWORD = os.getenv('STUDENT_PASSWORD')
 
 # Replace with your actual Discord channel IDs
-GRADES_CHANNEL_ID = ( put yours)  # Channel for regular 12-hour updates
-CHANGE_CHANNEL_ID = ( put yours)    # Channel for hourly change updates
+GRADES_CHANNEL_ID = 123456789012345678  # Replace with your actual channel ID
+CHANGE_CHANNEL_ID = 123456789012345678  # Replace with your actual channel ID
 
 if not all([TOKEN, USERNAME, PASSWORD]):
     logger.error("Missing environment variables. Please check your .env file.")
@@ -57,14 +57,13 @@ class StudentVueSession:
         self.password = password
         self.session = requests.Session()
         self.global_cookies = None
-        self.previous_grades = {}  # Initialize previous grades
+        self.previous_grades = {} 
 
     def login(self):
-        login_url = "https://your school link/PXP2_Login_Student.aspx?regenerateSessionId=true"
-        logger.info("Attempting to log in to StudentVue.")
+        login_url = "https://your-school-portal.com/login"  # Replace with the actual login URL
+        logger.info("Attempting to log in.")
 
         try:
-            # Fetch the login page to retrieve dynamic form fields
             login_page = self.session.get(login_url)
             login_page.raise_for_status()
         except requests.RequestException as e:
@@ -73,7 +72,6 @@ class StudentVueSession:
 
         soup = BeautifulSoup(login_page.content, 'html.parser')
 
-        # Extract necessary form fields
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})
         viewstate_gen = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})
         event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})
@@ -82,34 +80,19 @@ class StudentVueSession:
             logger.error("Missing form fields on the login page.")
             return False
 
-        # Prepare form data
         form_data = {
             "__VIEWSTATE": viewstate['value'],
             "__VIEWSTATEGENERATOR": viewstate_gen['value'],
             "__EVENTVALIDATION": event_validation['value'],
-            "ctl00$MainContent$username": self.username,
-            "ctl00$MainContent$password": self.password,
-            "ctl00$MainContent$Submit1": "Login"
+            "username": self.username,
+            "password": self.password,
+            "submit": "Login"
         }
 
         headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-            "Accept-Encoding": "gzip, deflate, br, zstd",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Host": "your school link",
-            "Origin": "https://your school link",
-            "Referer": login_url,
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Upgrade-Insecure-Requests": "1",
-            "sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"'
+            "User -Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         }
 
-        # Send the login request
         try:
             response = self.session.post(login_url, headers=headers, data=form_data)
             response.raise_for_status()
@@ -117,21 +100,13 @@ class StudentVueSession:
             logger.error(f"Login request failed: {e}")
             return False
 
-        if "Home_PXP2.aspx" in response.url:
+        if "HomePage" in response.url:  # Adjust this condition based on the actual URL after login
             logger.info("Login successful!")
 
-            # Extract specific cookies
             cookies = self.session.cookies.get_dict()
-            asp_net_session_id = cookies.get("ASP.NET_SessionId")
-            lm_synergy = cookies.get("LM_Synergy")
-
-            if asp_net_session_id and lm_synergy:
-                self.global_cookies = f"PVUE=00; ASP.NET_SessionId={asp_net_session_id}; LM_Synergy={lm_synergy}"
-                logger.info(f"Cookies updated: {self.global_cookies}")
-                return True
-            else:
-                logger.error("Required cookies not found after login.")
-                return False
+            self.global_cookies = cookies  # Store the cookies directly
+            logger.info(f"Cookies updated: {self.global_cookies}")
+            return True
         else:
             logger.error("Login failed or unexpected redirect.")
             return False
@@ -149,32 +124,14 @@ class StudentVueSession:
                 logger.error("Login failed. Cannot fetch grades.")
                 return None
 
-        url = 'https://your school link/PXP2_Gradebook.aspx?AGU=0&studentGU=50A22448-6B17-437F-AE42-662260A94136'
+        url = 'https://your-school-portal.com/grades'  # Replace with the actual grades URL
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br, zstd',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
+            'User -Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             'Cookie': self.global_cookies,
-            'Host': 'your school link',
-            'Referer': 'https://your school link/PXP2_Assessment.aspx?AGU=0&StudentAssessment=1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'same-origin',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
-            'sec-ch-ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"'
         }
 
         try:
             response = self.session.get(url, headers=headers)
-            if response.status_code == 500:
-                logger.error("Received 500 Internal Server Error from StudentVue.")
-                return None
             response.raise_for_status()
             return response.content
         except requests.RequestException as e:
@@ -185,24 +142,24 @@ class StudentVueSession:
         soup = BeautifulSoup(html_content, 'html.parser')
 
         grades_data = {}
-        class_items = soup.find_all('div', class_='gb-class-row')
+        class_items = soup.find_all('div', class_='grade-item')
 
         logger.info(f"Class items found: {len(class_items)}")
 
         for cls in class_items:
             try:
-                class_name_element = cls.find_previous('div', class_='gb-class-header')
+                class_name_element = cls.find_previous('div', class_='class-header')
                 class_name = class_name_element.find('button', class_='course-title').text.strip() if class_name_element else None
 
                 if not class_name:
                     logger.warning("Encountered a class with no name. Skipping.")
-                    continue  # Skip classes without a valid name
+                    continue  
 
                 score_element = cls.find('span', class_='score')
                 score = score_element.text.strip() if score_element else 'N/A'
                 letter_grade = convert_to_letter_grade(score.replace('%', '')) if score != 'N/A' else 'N/A'
 
-                missing_assignments_element = cls.find('div', class_='class-item-lessemphasis')
+                missing_assignments_element = cls.find('div', class_='missing-assignments')
                 missing_assignments = 0
                 if missing_assignments_element:
                     missing_assignments_text = missing_assignments_element.find_all('div')[0].text.strip()
@@ -213,7 +170,6 @@ class StudentVueSession:
 
                 logger.info(f"Class: {class_name}, Score: {score}, Letter Grade: {letter_grade}, Missing Assignments: {missing_assignments}, Last Update: {last_update}")
 
-                # Update grades_data only if class_name is valid
                 if class_name:
                     if class_name not in grades_data:
                         grades_data[class_name] = {
@@ -237,7 +193,7 @@ class StudentVueSession:
 
         return grades_data
 
-# Initialize StudentVueSession
+#  StudentVueSession
 studentvue = StudentVueSession(USERNAME, PASSWORD)
 
 @bot.event
@@ -248,9 +204,9 @@ async def on_ready():
         logger.info("Successfully logged in on startup.")
     else:
         logger.warning("Failed to log in on startup. Will attempt to log in when fetching grades.")
-    fetch_grades.start()    # Start the task to fetch grades every 12 hours
-    check_grade_changes.start()  # Start the task to check grade changes every hour
-    countdown.start()       # Start the countdown task
+    fetch_grades.start()    
+    check_grade_changes.start()  
+    countdown.start()       
 
 @bot.command()
 async def grades(ctx):
@@ -258,7 +214,7 @@ async def grades(ctx):
     html_content = studentvue.fetch_grades_page()
 
     if not html_content:
-        # Attempt to re-login and retry once
+        # Attempt to re-login!
         logger.info("Attempting to re-login and retry fetching grades.")
         if studentvue.login():
             html_content = studentvue.fetch_grades_page()
@@ -274,7 +230,7 @@ async def grades(ctx):
     message = "📚 **Here are your current grades and assignment statuses:**\n"
     if grades_data:
         for cls, details in grades_data.items():
-            message += (f"**{cls}**: Grade: {details['letter_grade']}, "
+            message += (f"**{cls}**: Score: {details['score']}, Grade: {details['letter_grade']}, "
                         f"Missing Assignments: {details['missing_assignments']}, "
                         f"Last Update: {details['last_update']}\n")
     else:
@@ -290,15 +246,46 @@ async def check(ctx):
     else:
         await ctx.send("Failed to update cookies. Please check your credentials.")
 
+@bot.command()
+async def time(ctx):
+    """Shows time remaining until next grade updates"""
+    logger.info(f"Time command invoked by {ctx.author}")
+    
+    now = datetime.now(timezone.utc)
+    next_regular_update = fetch_grades.next_iteration
+    next_change_check = check_grade_changes.next_iteration
+    
+    message = "⏰ **Update Schedule **\n"
+    
+    # Check time
+    if next_regular_update:
+        time_to_regular = next_regular_update - now
+        regular_hours, remainder = divmod(int(time_to_regular.total_seconds()), 3600)
+        regular_minutes, regular_seconds = divmod(remainder, 60)
+        message += f"📚 Next full grade update in: **{regular_hours}h {regular_minutes}m {regular_seconds}s**\n"
+    else:
+        message += "📚 Regular grade update schedule not available\n"
+    
+    # Check time 
+    if next_change_check:
+        time_to_check = next_change_check - now
+        check_hours, remainder = divmod(int(time_to_check.total_seconds()), 3600)
+        check_minutes, check_seconds = divmod(remainder, 60)
+        message += f"🔍 Next grade change check in: **{check_minutes}m {check_seconds}s**"
+    else:
+        message += "🔍 Grade change check schedule not available"
+    
+    await ctx.send(message)
+
 @tasks.loop(hours=12)
 async def fetch_grades():
-    channel = bot.get_channel(GRADES_CHANNEL_ID)  # Channel for regular updates
+    channel = bot.get_channel(GRADES_CHANNEL_ID)  
     if channel:
         logger.info("Starting scheduled grades fetch.")
         html_content = studentvue.fetch_grades_page()
 
         if not html_content:
-            # Attempt to re-login and retry once
+            # Attempt to re-login
             logger.info("Scheduled fetch: Attempting to re-login and retry fetching grades.")
             if studentvue.login():
                 html_content = studentvue.fetch_grades_page()
@@ -314,7 +301,7 @@ async def fetch_grades():
         message = "📚 **Current Grades and Assignment Statuses:**\n"
         if grades_data:
             for cls, details in grades_data.items():
-                message += (f"**{cls}**: Grade: {details['letter_grade']}, "
+                message += (f"**{cls}**: Score: {details['score']}, Grade: {details['letter_grade']}, "
                             f"Missing Assignments: {details['missing_assignments']}, "
                             f"Last Update: {details['last_update']}\n")
         else:
@@ -329,8 +316,9 @@ async def fetch_grades():
 async def check_grade_changes():
     """
     Task to check for any grade changes every hour and post updates.
+    Tracks both percentage and letter grade changes.
     """
-    channel = bot.get_channel(CHANGE_CHANNEL_ID)  # Channel for change updates
+    channel = bot.get_channel(CHANGE_CHANNEL_ID)  
     if not channel:
         logger.error("Change channel not found.")
         return
@@ -339,7 +327,7 @@ async def check_grade_changes():
     html_content = studentvue.fetch_grades_page()
 
     if not html_content:
-        # Attempt to re-login and retry once
+        
         logger.info("Hourly check: Attempting to re-login and retry fetching grades.")
         if studentvue.login():
             html_content = studentvue.fetch_grades_page()
@@ -358,22 +346,66 @@ async def check_grade_changes():
     for cls, details in current_grades.items():
         prev_details = previous_grades.get(cls)
         if prev_details:
-            # Compare letter grades
-            if details['letter_grade'] != prev_details.get('letter_grade'):
-                changes.append((cls, prev_details.get('letter_grade'), details['letter_grade']))
+            
+            current_score = float(details['score'].replace('%', '')) if details['score'] != 'N/A' else None
+            prev_score = float(prev_details['score'].replace('%', '')) if prev_details.get('score') != 'N/A' else None
+            
+            
+            if current_score is not None and prev_score is not None:
+                score_changed = abs(current_score - prev_score) >= 0.1  
+                letter_changed = details['letter_grade'] != prev_details.get('letter_grade')
+                
+                if score_changed or letter_changed:
+                    score_diff = round(current_score - prev_score, 2) if score_changed else 0
+                    changes.append({
+                        'class': cls,
+                        'old_score': f"{prev_score}%",
+                        'new_score': f"{current_score}%",
+                        'score_diff': score_diff,
+                        'old_letter': prev_details.get('letter_grade'),
+                        'new_letter': details['letter_grade']
+                    })
         else:
-            # New class added
-            changes.append((cls, 'N/A', details['letter_grade']))
+            #
+            current_score = details['score'] if details['score'] != 'N/A' else 'N/A'
+            changes.append({
+                'class': cls,
+                'old_score': 'N/A',
+                'new_score': current_score,
+                'score_diff': None,
+                'old_letter': 'N/A',
+                'new_letter': details['letter_grade']
+            })
 
-    # Check for removed classes
+    
     for cls in previous_grades:
         if cls not in current_grades:
-            changes.append((cls, previous_grades[cls].get('letter_grade'), 'Removed'))
+            changes.append({
+                'class': cls,
+                'old_score': previous_grades[cls].get('score', 'N/A'),
+                'new_score': 'Removed',
+                'score_diff': None,
+                'old_letter': previous_gr ades[cls].get('letter_grade', 'N/A'),
+                'new_letter': 'Removed'
+            })
 
     if changes:
         message = "🔔 **Grade Updates Detected:**\n"
-        for cls, old_grade, new_grade in changes:
-            message += f"**{cls}**: Grade changed from **{old_grade}** to **{new_grade}**\n"
+        for change in changes:
+            if change['score_diff'] is not None:
+                direction = "📈" if change['score_diff'] > 0 else "📉"
+                message += (
+                    f"**{change['class']}**:\n"
+                    f"- Grade: {change['old_score']} → {change['new_score']} "
+                    f"({direction} {'+' if change['score_diff'] > 0 else ''}{change['score_diff']}%)\n"
+                    f"- Letter Grade: {change['old_letter']} → {change['new_letter']}\n"
+                )
+            else:
+                message += (
+                    f"**{change['class']}**:\n"
+                    f"- Grade: {change['old_score']} → {change['new_score']}\n"
+                    f"- Letter Grade: {change['old_letter']} → {change['new_letter']}\n"
+                )
         await channel.send(message)
         logger.info(f"Posted grade changes: {changes}")
     else:
@@ -385,7 +417,7 @@ async def check_grade_changes():
 @tasks.loop(hours=1)
 async def countdown():
     try:
-        now = datetime.now(timezone.utc)  # Timezone-aware datetime in UTC
+        now = datetime.now(timezone.utc)  
         next_run = fetch_grades.next_iteration
         if next_run:
             time_remaining = next_run - now
